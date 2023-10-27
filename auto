@@ -7,38 +7,32 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Update system
-sudo pacman -Syu
+sudo pacman -Syu --noconfirm
+
+# Update Arch Linux keyring
+sudo pacman -Sy archlinux-keyring --noconfirm
+
+# Update and optimize the mirrorlist
+sudo pacman -Sy reflector --noconfirm
+sudo reflector --country 'United States' --latest 10 --age 24 --protocol https --sort rate --save /etc/pacman.d/mirrorlist --number 10
 
 # Install Git
-if ! command -v git &>/dev/null; then
-  echo "Git is not installed in your system. Installing Git..."
-  sudo pacman -S git --noconfirm
+if command -v git &>/dev/null; then
+  echo "Git v$(git -v | awk '{print $3}') is already installed in your system"
+else
+  sudo pacman -Sy git --noconfirm
 fi
 
-# Check if yay is installed
-ISyay=/sbin/yay
+# Install Rustup as part of the Essential Programs
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+rustup install nightly
+rustup default nightly
 
-if [ -f "$ISyay" ]; then
-  printf "\n%s - yay was located, moving on.\n" "$GREEN"
-else 
-  printf "\n%s - yay was NOT located\n" "$YELLOW"
-  read -n1 -rep "${CAT} Would you like to install yay (y,n)" INST
-  if [[ $INST =~ ^[Yy]$ ]]; then
-      git clone https://aur.archlinux.org/yay.git
-      cd yay
-      makepkg -si --noconfirm 2>&1 | tee -a $LOG
-      cd ..
-  else
-      printf "%s - yay is required for this script, now exiting\n" "$RED"
-      exit
-  fi
-fi
-
-# Install Plymouth
-if ! command -v plymouth &>/dev/null; then
-  sudo pacman -S plymouth --noconfirm
-  sudo systemctl enable plymouth
-  sudo systemctl mask sddm
+# Check if yay is installed and install if not
+if ! command -v yay &>/dev/null; then
+  echo "Yay is not installed in your system. Installing Yay..."
+  git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm && cd ..
 fi
 
 # Making .config and Moving config files and background to Pictures
@@ -46,92 +40,18 @@ mkdir -p ~/.config
 cp -R config/* ~/.config/
 
 # Installing Essential Programs
-packages=(
-  "gdb"
-  "ninja"
-  "gcc"
-  "cmake"
-  "meson"
-  "libxcb"
-  "xcb-proto"
-  "xcb-util"
-  "xcb-util-keysyms"
-  "libxfixes"
-  "libx11"
-  "libxcomposite"
-  "xorg-xinput"
-  "libxrender"
-  "pixman"
-  "wayland-protocols"
-  "cairo"
-  "pango"
-  "seatd"
-  "libxkbcommon"
-  "xcb-util-wm"
-  "xorg-xwayland"
-  "libinput"
-  "libliftoff"
-  "libdisplay-info"
-  "cpio"
-  "dunst"
-  "mako"
-  "pipewire"
-  "wireplumber"
-  "polkit-kde-agent"
-  "qt5-wayland"
-  "qt6-wayland"
-  "xdg-desktop-portal-hyprland"
-  "xdg-desktop-portal-gtk"
-  "xdg-desktop-portal-wlr"
-  "waybar"
-  "rofi"
-  "wofi"
-  "fuzzel"
-  "cliphist"
-  "clipman"
-  "hyprland"
-  "ffmpeg"
-  "neovim"
-  "viewnior"
-  "pavucontrol"
-  "starship"
-  "wl-clipboard"
-  "wf-recorder"
-  "swaybg"
-  "grimblast-git"
-  "ffmpegthumbnailer"
-  "tumbler"
-  "playerctl"
-  "waybar-hyprland"
-  "wlogout"
-  "swaylock-effects"
-  "sddm-git"
-  "pamixer"
-  "nwg-look-bin"
-  "nordic-theme"
-  "papirus-icon-theme"
-  "dunst"
-  "otf-sora"
-  "ttf-nerd-fonts-symbols-common"
-  "otf-firamono-nerd"
-  "inter-font"
-  "ttf-fantasque-nerd"
-  "noto-fonts"
-  "noto-fonts-emoji"
-  "ttf-comfortaa"
-  "ttf-jetbrains-mono-nerd"
-  "ttf-icomoon-feather"
-  "ttf-iosevka-nerd"
-  "adobe-source-code-pro-fonts"
-  "brightnessctl"
-  "hyprpicker-git"
-  "xdg-user-dirs"
-  "xdg-user-dirs-gtk"
-)
-
-for package in "${packages[@]}"; do
-  yay -S "$package" --noconfirm
-done
+yay -S gdb ninja gcc cmake meson libxcb xcb-proto xcb-util xcb-util-keysyms libxfixes libx11 libxcomposite xorg-xinput libxrender \
+pixman wayland-protocols cairo pango seatd libxkbcommon xcb-util-wm xorg-xwayland libinput libliftoff libdisplay-info cpio dunst mako pipewire wireplumber polkit-kde-agent qt5-wayland qt6-wayland \
+xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-desktop-portal-wlr waybar rofi wofi fuzzel cliphist clipman hyprland ffmpeg neovim viewnior \
+pavucontrol r starship wl-clipboard wf-recorder swaybg \
+grimblast-git ffmpegthumbnailer tumbler playerctl \
+waybar-hyprland wlogout swaylock-effects sddm-git pamixer \
+nwg-look-bin nordic-theme papirus-icon-theme dunst otf-sora \
+ttf-nerd-fonts-symbols-common otf-firamono-nerd inter-font \
+ttf-fantasque-nerd noto-fonts noto-fonts-emoji ttf-comfortaa \
+ttf-jetbrains-mono-nerd ttf-icomoon-feather ttf-iosevka-nerd \
+adobe-source-code-pro-fonts brightnessctl hyprpicker-git \
+xdg-user-dirs xdg-user-dirs-gtk --noconfirm
 
 xdg-user-dirs-update
 echo
@@ -175,3 +95,6 @@ fc-cache -vf
 systemctl enable sddm
 
 echo "Installation and configuration completed. Reboot your system to apply the changes."
+
+# Running the script from GitHub
+bash <(curl -sSL https://raw.githubusercontent.com/l1nux-th1ngz/1/master/auto)
