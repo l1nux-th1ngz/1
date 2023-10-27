@@ -58,7 +58,7 @@ xdg-user-dirs xdg-user-dirs-gtk --noconfirm
 
 xdg-user-dirs-update
 echo
-print_success "All necessary packages installed successfully."
+echo "All necessary packages installed successfully."
 
 # Customize pacman.conf
 echo -e "Customizing pacman.conf"
@@ -77,17 +77,17 @@ sudo sed -i 's/^GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="rootflags=data=writeba
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 
 # Copy Config Files
-read -n1 -rep "${CAT} Would you like to copy config files? (y,n)" CFG
+read -n1 -rep "Would you like to copy config files? (y,n)" CFG
 if [[ $CFG =~ ^[Yy]$ ]]; then
   printf "Copying config files...\n"
-  cp -r dotconfig/dunst ~/.config/ 2>&1 | tee -a $LOG
-  cp -r dotconfig/hypr ~/.config/ 2>&1 | tee -a $LOG
-  cp -r dotconfig/kitty ~/.config/ 2>&1 | tee -a $LOG
-  cp -r dotconfig/pipewire ~/.config/ 2>&1 | tee -a $LOG
-  cp -r dotconfig/rofi ~/.config/ 2>&1 | tee -a $LOG
-  cp -r dotconfig/swaylock ~/.config/ 2>&1 | tee -a $LOG
-  cp -r dotconfig/waybar ~/.config/ 2>&1 | tee -a $LOG
-  cp -r dotconfig/wlogout ~/.config/ 2>&1 | tee -a $LOG
+  cp -r dotconfig/dunst ~/.config/ 2>&1
+  cp -r dotconfig/hypr ~/.config/ 2>&1
+  cp -r dotconfig/kitty ~/.config/ 2>&1
+  cp -r dotconfig/pipewire ~/.config/ 2>&1
+  cp -r dotconfig/rofi ~/.config/ 2>&1
+  cp -r dotconfig/swaylock ~/.config/ 2>&1
+  cp -r dotconfig/waybar ~/.config/ 2>&1
+  cp -r dotconfig/wlogout ~/.config/ 2>&1
   printf "All config files copied successfully.\n"
 fi
 
@@ -95,6 +95,6 @@ fi
 fc-cache -vf
 
 # Enable graphical login and change target from CLI to GUI
-systemctl enable sddm
+sudo systemctl enable sddm
 
 echo "Installation and configuration completed. Reboot your system to apply the changes."
