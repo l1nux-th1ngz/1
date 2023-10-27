@@ -95,6 +95,3 @@ fc-cache -vf
 systemctl enable sddm
 
 echo "Installation and configuration completed. Reboot your system to apply the changes."
-
-# Running the script from GitHub
-bash <(curl -sSL https://raw.githubusercontent.com/l1nux-th1ngz/1/master/auto)
