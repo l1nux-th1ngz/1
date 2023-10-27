@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Download the auto.sh script
-curl -o auto.sh -sSL https://raw.githubusercontent.com/l1nux-th1ngz/1/master/auto.sh
+curl -o auto.sh -sSL https://raw.githubusercontent.com/l1nux-th1ngz/1/main/auto.sh
 
 # Check if Script is Run as Root
 if [[ $EUID -ne 0 ]]; then
@@ -80,4 +80,21 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg
 read -n1 -rep "${CAT} Would you like to copy config files? (y,n)" CFG
 if [[ $CFG =~ ^[Yy]$ ]]; then
   printf "Copying config files...\n"
-  cp -r dotconfig/dunst ~/.config/ 2>&
+  cp -r dotconfig/dunst ~/.config/ 2>&1 | tee -a $LOG
+  cp -r dotconfig/hypr ~/.config/ 2>&1 | tee -a $LOG
+  cp -r dotconfig/kitty ~/.config/ 2>&1 | tee -a $LOG
+  cp -r dotconfig/pipewire ~/.config/ 2>&1 | tee -a $LOG
+  cp -r dotconfig/rofi ~/.config/ 2>&1 | tee -a $LOG
+  cp -r dotconfig/swaylock ~/.config/ 2>&1 | tee -a $LOG
+  cp -r dotconfig/waybar ~/.config/ 2>&1 | tee -a $LOG
+  cp -r dotconfig/wlogout ~/.config/ 2>&1 | tee -a $LOG
+  printf "All config files copied successfully.\n"
+fi
+
+# Reloading Font
+fc-cache -vf
+
+# Enable graphical login and change target from CLI to GUI
+systemctl enable sddm
+
+echo "Installation and configuration completed. Reboot your system to apply the changes."
