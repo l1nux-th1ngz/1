@@ -1,13 +1,13 @@
 #!/bin/bash
 
+# Download the auto.sh script
+curl -o auto.sh -sSL https://raw.githubusercontent.com/l1nux-th1ngz/1/master/auto.sh
+
 # Check if Script is Run as Root
 if [[ $EUID -ne 0 ]]; then
   echo "This script requires root privileges to run." >&2
   exit 1
 fi
-
-# Auto answer "yes" to all prompts
-export AUTO_YES=1
 
 # Update system
 sudo pacman -Syu --noconfirm
@@ -20,7 +20,9 @@ sudo pacman -Sy reflector --noconfirm
 sudo reflector --country 'United States' --latest 10 --age 24 --protocol https --sort rate --save /etc/pacman.d/mirrorlist --number 10
 
 # Install Git
-if ! command -v git &>/dev/null; then
+if command -v git &>/dev/null; then
+  echo "Git v$(git -v | awk '{print $3}') is already installed in your system"
+else
   sudo pacman -Sy git --noconfirm
 fi
 
@@ -32,6 +34,7 @@ rustup default nightly
 
 # Check if yay is installed and install if not
 if ! command -v yay &>/dev/null; then
+  echo "Yay is not installed in your system. Installing Yay..."
   git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si --noconfirm && cd ..
 fi
 
@@ -40,7 +43,7 @@ mkdir -p ~/.config
 cp -R config/* ~/.config/
 
 # Installing Essential Programs
-yay -S --noconfirm gdb ninja gcc cmake meson libxcb xcb-proto xcb-util xcb-util-keysyms libxfixes libx11 libxcomposite xorg-xinput libxrender \
+yay -S gdb ninja gcc cmake meson libxcb xcb-proto xcb-util xcb-util-keysyms libxfixes libx11 libxcomposite xorg-xinput libxrender \
 pixman wayland-protocols cairo pango seatd libxkbcommon xcb-util-wm xorg-xwayland libinput libliftoff libdisplay-info cpio dunst mako pipewire wireplumber polkit-kde-agent qt5-wayland qt6-wayland \
 xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-desktop-portal-wlr waybar rofi wofi fuzzel cliphist clipman hyprland ffmpeg neovim viewnior \
 pavucontrol r starship wl-clipboard wf-recorder swaybg \
@@ -54,6 +57,8 @@ adobe-source-code-pro-fonts brightnessctl hyprpicker-git \
 xdg-user-dirs xdg-user-dirs-gtk --noconfirm
 
 xdg-user-dirs-update
+echo
+print_success "All necessary packages installed successfully."
 
 # Customize pacman.conf
 echo -e "Customizing pacman.conf"
@@ -72,20 +77,7 @@ sudo sed -i 's/^GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="rootflags=data=writeba
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 
 # Copy Config Files
-printf "Copying config files...\n"
-cp -r dotconfig/dunst ~/.config/ 2>&1 | tee -a $LOG
-cp -r dotconfig/hypr ~/.config/ 2>&1 | tee -a $LOG
-cp -r dotconfig/kitty ~/.config/ 2>&1 | tee -a $LOG
-cp -r dotconfig/pipewire ~/.config/ 2>&1 | tee -a $LOG
-cp -r dotconfig/rofi ~/.config/ 2>&1 | tee -a $LOG
-cp -r dotconfig/swaylock ~/.config/ 2>&1 | tee -a $LOG
-cp -r dotconfig/waybar ~/.config/ 2>&1 | tee -a $LOG
-cp -r dotconfig/wlogout ~/.config/ 2>&1 | tee -a $LOG
-
-# Reloading Font
-fc-cache -vf
-
-# Enable graphical login and change target from CLI to GUI
-systemctl enable sddm
-
-echo "Installation and configuration completed. Reboot your system to apply the changes."
+read -n1 -rep "${CAT} Would you like to copy config files? (y,n)" CFG
+if [[ $CFG =~ ^[Yy]$ ]]; then
+  printf "Copying config files...\n"
+  cp -r dotconfig/dunst ~/.config/ 2>&
